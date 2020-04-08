@@ -1,24 +1,24 @@
 from rest_framework import serializers
 
-from group.models import Group, Person
+from group.models import Group, User
 
 
 class GroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = ('id', 'name', 'users')
+        fields = ('id', 'super_admin', 'name', 'users')
         extra_kwargs = {
             'users': {'required': False},
         }
 
 
-class PersonSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     groups = GroupSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Person
-        fields = ('id', 'name', 'groups')
+        model = User
+        fields = ('id', 'groups')
         extra_kwargs = {
             'groups': {'required': False},
         }
