@@ -3,22 +3,24 @@ from rest_framework import serializers
 from group.models import Group, Person
 
 
-class PersonSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Person
-        fields = '__all__'
-
-
 class GroupSerializer(serializers.ModelSerializer):
-    users = PersonSerializer(many=True, read_only=True)
-    # admins = PersonSerializer(many=True, read_only=True)
 
     class Meta:
         model = Group
-        fields = '__all__'
+        fields = ('id', 'name', 'users')
         extra_kwargs = {
-            # 'admins': {'required': False},
             'users': {'required': False},
+        }
+
+
+class PersonSerializer(serializers.ModelSerializer):
+    groups = GroupSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Person
+        fields = ('id', 'name', 'groups')
+        extra_kwargs = {
+            'groups': {'required': False},
         }
 
     # def create(self, validated_data):
