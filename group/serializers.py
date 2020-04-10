@@ -7,9 +7,10 @@ class GroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = ('id', 'super_admin', 'name', 'users')
+        fields = ('id', 'name', 'super_admin', 'admins', 'members')
         extra_kwargs = {
-            'users': {'required': False},
+            'admins': {'required': False},
+            'members': {'required': False},
         }
 
 

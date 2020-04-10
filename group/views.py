@@ -4,7 +4,6 @@ from group.models import Group, User
 from group.serializers import GroupSerializer, UserSerializer
 from rest_framework.response import Response
 from rest_framework import status
-from django.db.models import Q
 
 
 class GroupViewSet(viewsets.ModelViewSet):
@@ -13,21 +12,21 @@ class GroupViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         user = request.user.pk
+        if user is None:
+            return Response(
+                {"detail": f"You are unauthorized"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
         group_id = int(kwargs.get('pk'))
         group_owner = Group.objects.get(pk=group_id).super_admin.pk
         if user == group_owner:
-
-
-            # TODO Кверя завжди повертає super_admin_id
-            group_users = list(User.objects.filter(group__pk=group_id).values_list('pk', flat=True))
-            for _user in request.data['users']:
-                if _user not in group_users:
-                    group_users.append(_user)
+            data = self._update_admins_members(request.data, group_id)
 
             # TODO Check if is possible to refactor instance
             serializer = self.get_serializer(
                 instance=self.get_object(),
-                data={'users': group_users},
+                data=data,
                 partial=kwargs.pop('partial', False)
             )
             serializer.is_valid(raise_exception=True)
@@ -38,6 +37,36 @@ class GroupViewSet(viewsets.ModelViewSet):
             {"detail": f"Request data {request.data}. is incorrect"},
             status=status.HTTP_400_BAD_REQUEST
         )
+
+    # TODO needs refactoring
+    @staticmethod
+    def _update_admins_members(data, group_id):
+        data_to_update = {}
+        group_admins = list(User.objects.filter(group_admins__pk=group_id).values_list('pk', flat=True))
+        group_members = list(User.objects.filter(group_members__pk=group_id).values_list('pk', flat=True))
+        new_admin_found = False
+        new_member_found = False
+        for member in data.get('admins', []):
+            if member not in group_admins + group_members:
+                new_admin_found = True
+                group_admins.append(member)
+        for member in data.get('members', []):
+            if member not in group_admins + group_members:
+                new_member_found = True
+                group_members.append(member)
+        if new_admin_found:
+            data_to_update['admins'] = group_admins
+        if new_member_found:
+            data_to_update['members'] = group_members
+        if data_to_update:
+            return data_to_update
+
+        return Response(
+            {"detail": f"All members you are trying to add are already in group"},
+            status=status.HTTP_406_NOT_ACCEPTABLE
+        )
+
+
 
 
 class UserViewSet(viewsets.ModelViewSet):

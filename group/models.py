@@ -9,7 +9,8 @@ class User(AbstractUser):
 class Group(models.Model):
     name = models.CharField(max_length=128)
     super_admin = models.ForeignKey(User, on_delete=models.CASCADE)
-    users = models.ManyToManyField('User', related_name='qroups', blank=True)
+    admins = models.ManyToManyField(User, blank=True, related_name='group_admins')
+    members = models.ManyToManyField(User, blank=True, related_name='group_members')
 
     def __str__(self):
         return self.name
