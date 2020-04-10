@@ -6,7 +6,7 @@ from rest_framework import permissions
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
 
-from group.views import GroupViewSet, UserViewSet
+from group.views import GroupViewSet, UserViewSet, MembershipViewSet
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -24,6 +24,7 @@ schema_view = get_schema_view(
 router = DefaultRouter()
 router.register(r'api/groups', GroupViewSet, basename='group')
 router.register(r'api/users', UserViewSet, basename='user')
+router.register(r'api/membership', MembershipViewSet, basename='membership')
 
 urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
